@@ -1,0 +1,90 @@
+columns:
+
+  - name: Category
+    type: string
+    missing:
+      strategy: fill_value
+      value: "Unknown"
+
+  - name: Item
+    type: string
+    missing:
+      strategy: fill_value
+      value: "Unknown"
+
+  - name: Price Per Unit
+    type: float
+    missing:
+      strategy: derive
+      derive_from:
+        - Total Spent
+        - Quantity
+      fallback:
+        strategy: median_by_category
+        group_col: Category
+
+  - name: Quantity
+    type: integer
+    missing:
+      strategy: derive
+      derive_from:
+        - Total Spent
+        - Price Per Unit
+      fallback:
+        strategy: median_by_category
+        group_col: Category
+
+  - name: Total Spent
+    type: float
+    missing:
+      strategy: derive
+      derive_from:
+        - Price Per Unit
+        - Quantity
+      fallback:
+        strategy: median_by_category
+        group_col: Category
+
+  - name: Payment Method
+    type: string
+    missing:
+      strategy: fill_value
+      value: "Unknown"
+
+  - name: Location
+    type: string
+    missing:
+      strategy: fill_value
+      value: "Unknown"
+
+  - name: Transaction Date
+    type: datetime
+    missing:
+      strategy: fill_value
+      value: "1970-01-01"
+
+  - name: Discount Applied
+    type: boolean
+    missing:
+      strategy: fill_value
+      value: false
+
+
+outliers:
+
+  - column: Price Per Unit
+    method: iqr
+    factor: 1.5
+    action: clip
+
+  - column: Quantity
+    method: iqr
+    factor: 1.5
+    action: flag
+    id_column: Transaction ID
+
+  - column: Total Spent
+    method: iqr
+    factor: 1.5
+    action: flag
+    id_column: Transaction ID

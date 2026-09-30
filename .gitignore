@@ -1,0 +1,22 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Generated pipeline outputs
+/retail_store_sales_clean.csv
+/cleaning_report.json
+/logs/*.log*
+
+# Coverage output
+.coverage
+htmlcov/
+
+# Operating system files
+.DS_Store
+Thumbs.db
