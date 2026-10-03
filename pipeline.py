@@ -1,11 +1,14 @@
 import json
 import logging
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 import pandas as pd
 import yaml
 
-from cleaning import clean_dataframe
+from cleaning import clean_dataframe, validate_dataframe
+
+Path("logs").mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,6 +29,7 @@ try:
 except Exception:
     logger.exception("Erro ao ler o arquivo CSV.")
     raise
+
 missing_before = df.isna().sum()
 logger.info(f"Valores ausentes antes da limpeza:\n{missing_before}")
 
@@ -37,15 +41,25 @@ except Exception:
     logger.exception("Erro ao ler o arquivo de configuração.")
     raise
 
+validation_report = validate_dataframe(
+    df,
+    config.get("validations", []),
+    id_column="Transaction ID",
+)
+logger.info("Validações concluídas: %d ocorrências encontradas.", validation_report["issues_found"])
+
 outlier_report = {}
+
 try:
     df_clean = clean_dataframe(df, config, outlier_report=outlier_report)
     logger.info("Limpeza de dados concluída com sucesso.")
 except Exception:
     logger.exception("Erro ao aplicar a limpeza de dados.")
     raise
+
 missing_after = df_clean.isna().sum()
 logger.info(f"Valores ausentes após a limpeza:\n{missing_after}")
+
 try:
     df_clean.to_csv("retail_store_sales_clean.csv", index=False)
     logger.info("Arquivo CSV limpo salvo com sucesso.")
@@ -60,14 +74,15 @@ report = {
         column: {
             "before": int(missing_before[column]),
             "after": int(missing_after[column])
-        } for column in df.columns
+        } for column in missing_before.index
     },
-    "outliers_by_column": outlier_report
+    "outliers_by_column": outlier_report,
+    "validation": validation_report,
 }
 
 for column, metrics in outlier_report.items():
     logger.info(
-        "Outliers em %s: %d encontrados, %d alterados", column, metrics["found"], metrics["changed"]
+        "Outliers em %s: %d encontrados", column, metrics["found"]
     )
 
 try:

@@ -61,7 +61,7 @@ columns:
     type: datetime
     missing:
       strategy: fill_value
-      value: "1970-01-01"
+      value: NULL
 
   - name: Discount Applied
     type: boolean
@@ -75,16 +75,57 @@ outliers:
   - column: Price Per Unit
     method: iqr
     factor: 1.5
-    action: clip
 
   - column: Quantity
     method: iqr
     factor: 1.5
-    action: flag
     id_column: Transaction ID
 
   - column: Total Spent
     method: iqr
     factor: 1.5
-    action: flag
     id_column: Transaction ID
+
+
+validations:
+
+  - column: Price Per Unit
+    type: non_negative
+
+  - column: Total Spent
+    type: non_negative
+
+  - column: Discount Applied
+    type: boolean_values
+
+  - column: Transaction Date
+    type: date_format
+    format: '%Y-%m-%d'
+
+  - column: Transaction Date
+    type: not_future
+
+  - column: Payment Method
+    type: allowed_values
+    values:
+      - Cash
+      - Credit Card
+      - Digital Wallet
+
+  - column: Category
+    type: allowed_values
+    values:
+      - Beverages
+      - Butchers
+      - Computers and electric accessories
+      - Electric household essentials
+      - Food
+      - Furniture
+      - Milk Products
+      - Patisserie
+
+  - column: Location
+    type: allowed_values
+    values:
+      - In-store
+      - Online
